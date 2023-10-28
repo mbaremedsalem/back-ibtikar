@@ -2,6 +2,8 @@ from django.contrib import admin
 from .models import UserIbtikar,Etudiant,Manager,Cours,Video,Transaction
 # Register your models here.
 
+admin.site.site_header = "IBTIKAR"
+
 class UserAdminConfig(admin.ModelAdmin):
     model = UserIbtikar
     search_fields = ('email', 'name', 'phone','prenom',)
@@ -27,7 +29,7 @@ class UserManager(admin.ModelAdmin):
     search_fields = ('email', 'name', 'phone','prenom',)
     list_filter = ('email', 'name', 'phone', 'is_active', 'is_staff')
     ordering = ('name',)  # Update the ordering field here
-    list_display = ('phone','prenom','email', 'name', 'is_superuser','prenom',
+    list_display = ('phone','prenom','email', 'name', 'is_superuser',
                     'is_active', 'is_staff', 'is_blocked', 'password',)
     fieldsets = (
         (None, {'fields': ('email', 'name', 'phone','image','role','prenom')}),

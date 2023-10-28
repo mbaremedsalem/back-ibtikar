@@ -51,10 +51,14 @@ class Manager(UserIbtikar):
 
     def __str__(self): 
         return self.phone     
+def image_uoload_course(instance,filname):
+    imagename,extention =  filname.split(".")
+    return "video-image/%s.%s"%(instance.id,extention)  
     
 class Cours(models.Model):
     titre = models.CharField(max_length=100)
     description = models.TextField()
+    image = models.ImageField(upload_to=image_uoload_course ,null=True) 
     prix = models.DecimalField(max_digits=8, decimal_places=2)
     manager = models.ForeignKey(Manager, on_delete=models.CASCADE)
     
