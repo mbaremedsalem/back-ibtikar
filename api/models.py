@@ -26,7 +26,7 @@ class UserIbtikar(AbstractBaseUser,PermissionsMixin):
     role= models.CharField(max_length=30, choices=Role, default='Manager')
     is_superuser = models.BooleanField(default=False)
     is_blocked = models.BooleanField(default=False)
-
+    
     objects = UserManager()
 
     USERNAME_FIELD = 'phone'

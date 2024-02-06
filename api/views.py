@@ -9,7 +9,7 @@ from rest_framework import generics
 from .serializers import *
 from .authorization import *
 from rest_framework_simplejwt.authentication import JWTAuthentication
-
+from rest_framework.views import APIView
 # Create your views here.
 
 ## login
@@ -131,9 +131,97 @@ class CoursCreateView(generics.CreateAPIView):
         }
         
         return Response(response_data, status=status.HTTP_201_CREATED)
+#------ get courses -------
+class CoursGetView(generics.ListCreateAPIView):
+    serializer_class = CoursSerializer
+    permission_classes = [permissions.IsAuthenticated, IsManager]
+    authentication_classes = [JWTAuthentication]
+
+    def get_queryset(self):
+        # Récupérez l'ID du manager à partir du jeton JWT
+        manager_id = self.request.user.id
+        # Récupérez la liste des cours associés au manager
+        return Cours.objects.filter(manager__id=manager_id)
+
+    def list(self, request, *args, **kwargs):
+        # Obtenez la liste des cours à l'aide de la méthode get_queryset
+        queryset = self.get_queryset()
+        # Sérialisez les cours avec le serializer CoursSerializer
+        serializer = self.get_serializer(queryset, many=True)
+        # Composez la réponse en incluant les données sérialisées des cours
+        
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+#---------- get all courses ----------------    
+class CoursGetAllView(generics.ListCreateAPIView):
+    serializer_class = CoursSerializer
+    permission_classes = [permissions.IsAuthenticated, IsManager]
+    authentication_classes = [JWTAuthentication]
+
+    def get(self, request):
+        # Récupérez tous les documents
+        documents = Cours.objects.all()
+        serializer = CoursSerializer(documents, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)  
+    
+#-------- delete courses by id -------------         
+class deleteCourses(APIView):
+    permission_classes = [permissions.IsAuthenticated, IsManager]
+    authentication_classes = [JWTAuthentication]
+
+    def delete(self,request, cours_id):
+        # Code pour supprimer un document par son ID
+        
+        try:
+            course = Cours.objects.get(id=cours_id)
+            course.delete()
+            return Response({'detail': 'course deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
+        except Cours.DoesNotExist:
+            return Response({'detail': 'course not found'}, status=status.HTTP_404_NOT_FOUND) 
+        
+#-------- delete courses by id -------------   
+class updateDocuments(APIView):
+    permission_classes = [permissions.IsAuthenticated, IsManager]
+    authentication_classes = [JWTAuthentication]
+
+    def put(self, request, course_id):
+        # Code pour mettre à jour un document par son ID
+        try:
+            course = Cours.objects.get(id=course_id)
+            serializer = CoursSerializer(course, data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Cours.DoesNotExist:
+            return Response({'message': 'course not found'}, status=status.HTTP_404_NOT_FOUND)   
+
 #poster un video
 class VideoCreateView(generics.CreateAPIView):
     queryset = Video.objects.all()
     serializer_class = VideoSerializer  
     permission_classes = [permissions.IsAuthenticated, IsManager]
     authentication_classes = [JWTAuthentication]  
+
+#---------get video by courses -------
+class VideoListView(generics.ListAPIView):
+    serializer_class = VideoSerializer
+    permission_classes = [permissions.IsAuthenticated, IsManager]
+    authentication_classes = [JWTAuthentication]
+
+    def get_queryset(self):
+        # Récupérez l'ID du cours à partir des paramètres de requête
+        cours_id = self.kwargs.get('cours_id')  # Assurez-vous que vous avez un chemin dans vos URLs pour inclure le cours_id
+        # Récupérez la liste des vidéos associées au cours spécifié
+        return Video.objects.filter(cours__id=cours_id)
+
+    def list(self, request, *args, **kwargs):
+        # Obtenez la liste des vidéos à l'aide de la méthode get_queryset
+        queryset = self.get_queryset()
+        # Sérialisez les vidéos avec le serializer VideoSerializer
+        serializer = self.get_serializer(queryset, many=True)
+        # Composez la réponse en incluant les données sérialisées des vidéos
+        # response_data = {
+        #     "videos": serializer.data
+        # }
+        return Response(serializer.data, status=status.HTTP_200_OK)  
